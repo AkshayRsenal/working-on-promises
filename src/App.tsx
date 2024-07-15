@@ -12,7 +12,7 @@ function App() {
 				<p>TEMPLATES HEADER</p>
 			</header>
 			<div>
-				<div><Loader /></div>
+				{/* <div><Loader /></div> */}
 				<main>
 					<Movies />
 				</main>

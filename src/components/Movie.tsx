@@ -18,6 +18,15 @@ interface ApiResponse {
 const API_URL = "http://www.omdbapi.com/";
 const API_KEY = "9030182c";
 
+const delayedPromise = (ms: number) =>
+	new Promise((resolve, reject) => {
+		setTimeout(() => {
+			console.log("Before Resolve statement")
+			resolve("resolve after the delay");
+			console.log("Resolved after the delay")
+		}, ms);
+	});
+
 async function fetchMovies(
 	searchTerm: string,
 	year: string
@@ -33,6 +42,7 @@ async function fetchMovies(
 		}
 
 		const data: ApiResponse = await response.json();
+		await delayedPromise(3000);
 
 		if (data.Response === "False") {
 			throw new Error(data.Error || "Unknown error occurred");
@@ -64,41 +74,43 @@ read()
 	});
 
 const Movies: React.FC = () => {
-    const [movies, setMovies] = useState<Movie[]>([]);
-    const [error, setError] = useState<string | null>(null);
+	const [movies, setMovies] = useState<Movie[]>([]);
+	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 
 	const getMovies = async () => {
 		try {
 			const data = await fetchMovies("space", "2001");
 			setMovies(data.Search);
-		} catch (error:any) {
+		} catch (error: any) {
 			setError(error.message);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-    useEffect(() => { getMovies();}, []);
+	useEffect(() => { getMovies(); }, []);
 
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
+	if (error) {
+		return <div>Error: {error}</div>;
+	}
 
-    return (
-        <div>
-            <h1>Movies</h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                {movies.map(movie => (
-                    <div key={movie.imdbID} style={{ margin: '10px', border: '1px solid #ccc', padding: '10px', width: '200px' }}>
-                        <h3>{movie.Title}</h3>
-                        <p>{movie.Year}</p>
-                        <img src={movie.Poster} alt={movie.Title} style={{ width: '100%' }} />
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+	return (
+		<div>
+			<h1>Movies</h1>
+			{movies && <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+				{movies.map(movie => (
+					<div key={movie.imdbID} style={{ margin: '10px', border: '1px solid #ccc', padding: '10px', width: '200px' }}>
+						<h3>{movie.Title}</h3>
+						<p>{movie.Year}</p>
+						<img src={movie.Poster} alt={movie.Title} style={{ width: '100%' }} />
+					</div>
+				))}
+			</div>}
+			{error && <div><p> There was an Error:</p>  </div>}
+			{loading && <div className="spinning-loader"></div>}
+		</div>
+	);
 };
 
 export default Movies;

@@ -93,8 +93,6 @@ function Loader() {
 
 	return (
 		<div>
-			
-
 			{moviesJSON && <div>
 				<p>I am a search result</p>
 				{moviesJSON.map((movie) => (
