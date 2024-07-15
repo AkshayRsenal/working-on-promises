@@ -10,6 +10,8 @@ interface Movie {
 	Poster: string;
 }
 
+// ###Analysing Promises 
+
 function Loader() {
 	// fetch("http://www.omdbapi.com/?apikey=9030182c&s=space&y=2001")
 	// 	.then((response) => response.json())
@@ -17,6 +19,7 @@ function Loader() {
 	// 		//   console.log(data);
 	// 	})
 	// 	.catch((error) => console.error("Error:", error));
+
 
 	// let getAllMedia = () => {
 	// 	fetch("http://www.omdbapi.com/?apikey=9030182c&s=space&y=2001")
@@ -27,39 +30,30 @@ function Loader() {
 	// 		});
 	// };
 
+	console.log("Before Promise");
+	const delayedPromise = (ms: number) =>
+		new Promise((resolve, reject) => {
+			setTimeout(() => {
+				console.log("Before Resolve statement")
+				resolve("resolve after the delay");
+				console.log("Resolved after the delay")
+			}, ms);
+		});
+
 	async function readAllData() {
 		try {
 			let fetchTestResponse = await fetch(
 				"http://www.omdbapi.com/?apikey=9030182c&s=space&y=2001"
 			);
-
 			if (!fetchTestResponse.ok) {
 				throw new Error("HTTP error! status: ${response.satus}");
 			}
-
-			
-			let tester = await fetchTestResponse.json();
-
-			console.log("Before Promise");
-			const promise1 = (ms: number) =>
-				new Promise((resolve, reject) => {
-					setTimeout(() => {
-						console.log("Before Resolve statement")
-						resolve("foo");
-						console.log("Resolved Foo")
-					}, ms);
-				});
-
-			await promise1(6000);
-
-			if (tester.Response == "False") {
-				throw new Error(tester.Error || "Unknown error occurred");
+			let allMoviesinJSON = await fetchTestResponse.json();
+			await delayedPromise(3000);
+			if (allMoviesinJSON.Response == "False") {
+				throw new Error(allMoviesinJSON.Error || "Unknown error occurred");
 			}
-
-			// console.log("tester.Search");
-			// console.log(tester.Search[0]);
-
-			return tester;
+			return allMoviesinJSON;
 		} catch (error) {
 			console.log("Error fetching data:", error);
 			throw error;
@@ -67,41 +61,31 @@ function Loader() {
 	}
 
 	// fetch all data Implementation 1
-	getAllMedia();
+	// getAllMedia();
 	// fetch all data Implementation 2
 	// let dataToBeWritten = readAllData();
 
-	
-	// async function tester() {
-	// 	let dataToWrite = await readAllData();
-	// 	console.log("dataToWrite Promise");
-	// 	console.log(dataToWrite);
-	// }
-	// tester();
 
-
-
-	// readAllData().then(() => {
-	//     console.log()
-	// })
-
-	const [movies, setMovies] = useState<Movie[]>([]);
+	const [moviesJSON, setMovies] = useState<Movie[]>([]);
 	const [error, setError] = useState<string | null>(null);
+	const [loading, setLoading] = useState<boolean>(true);
+
+	const getMovies = async () => {
+		try {
+			const data = await readAllData();
+			setMovies(data.Search);
+		} catch (error: any) {
+			setError(error.message);
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	useEffect(() => {
-		const getMovies = async () => {
-			try {
-				const data = await readAllData();
-				setMovies(data.Search);
-			} catch (error: any) {
-				setError(error.message);
-			}
-		};
-
 		getMovies();
 	}, []);
 
-	// console.log(movies);
+	// console.log(moviesJSON);
 
 	if (error) {
 		return <div>Error: {error}</div>;
@@ -109,10 +93,11 @@ function Loader() {
 
 	return (
 		<div>
-			<p>I am a search result</p>
+			
 
-			<div>
-				{movies.map((movie) => (
+			{moviesJSON && <div>
+				<p>I am a search result</p>
+				{moviesJSON.map((movie) => (
 					<div
 						key={movie.imdbID}
 						style={{
@@ -127,9 +112,13 @@ function Loader() {
 						<p> {movie.Poster} </p>
 					</div>
 				))}
-			</div>
+			</div>}
+			{error && <div><p> There was an Error:</p>  </div>}
+			{/* {loading && <p>This is Loading...</p>} */}
 
-			<button>Skip to other(s)</button>
+
+			{loading && <div className="spinning-loader"></div>}
+
 		</div>
 	);
 }

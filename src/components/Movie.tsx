@@ -66,19 +66,20 @@ read()
 const Movies: React.FC = () => {
     const [movies, setMovies] = useState<Movie[]>([]);
     const [error, setError] = useState<string | null>(null);
+	const [loading, setLoading] = useState<boolean>(true);
 
-    useEffect(() => {
-        const getMovies = async () => {
-            try {
-                const data = await fetchMovies("space", "2001");
-                setMovies(data.Search);
-            } catch (error:any) {
-                setError(error.message);
-            }
-        };
+	const getMovies = async () => {
+		try {
+			const data = await fetchMovies("space", "2001");
+			setMovies(data.Search);
+		} catch (error:any) {
+			setError(error.message);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-        getMovies();
-    }, []);
+    useEffect(() => { getMovies();}, []);
 
     if (error) {
         return <div>Error: {error}</div>;
